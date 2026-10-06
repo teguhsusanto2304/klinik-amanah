@@ -1,6 +1,6 @@
 # Klinik Amanah App
 
-Aplikasi mobile (Android) untuk staf **Sistem Klinik Amanah**: pendaftaran kunjungan pasien, antrean, jadwal dokter, tagihan & pembayaran, serta kas kasir. Aplikasi ini adalah klien dari REST API Laravel `klinik-amanah` dan memakai logika bisnis yang sama dengan versi web.
+Aplikasi mobile (Android) untuk staf **Sistem Klinik Amanah**: pendaftaran kunjungan pasien, antrean, jadwal dokter, tagihan & pembayaran, serta kas kasir. Aplikasi ini adalah klien dari REST API Spring Boot `klinik-amanah` dan memakai logika bisnis yang sama dengan versi web.
 
 ## Daftar Isi
 
@@ -16,7 +16,7 @@ Aplikasi mobile (Android) untuk staf **Sistem Klinik Amanah**: pendaftaran kunju
 
 | Modul | Fitur |
 |---|---|
-| **Autentikasi** | Login dengan token Sanctum, sesi tersimpan di perangkat, logout otomatis saat token kedaluwarsa (401) |
+| **Autentikasi** | Login dengan token Bearer, sesi tersimpan di perangkat, logout otomatis saat token kedaluwarsa (401) |
 | **Beranda** | Ringkasan hari ini: pendapatan tagihan, jumlah kunjungan, kas masuk/keluar, dokter praktik beserta sisa kuota; menu cepat |
 | **Pasien** | Pencarian pasien (nama, no. RM, tanggal lahir), riwayat kunjungan pasien |
 | **Kunjungan** | Registrasi kunjungan hari ini (jadwal dokter, penjamin, rujukan, keluhan), nomor antrean, detail & pembatalan |
@@ -41,7 +41,7 @@ Tombol dan menu menyesuaikan izin (permission) user dari server; bagian yang tid
 | State & async | Angular Signals, RxJS 7 |
 | Form | Reactive Forms |
 | Testing | Vitest + jsdom |
-| Backend | Laravel REST API dengan autentikasi Sanctum (repo terpisah: `klinik-amanah`) |
+| Backend | [Spring Boot](https://spring.io/projects/spring-boot) REST API dengan Spring Security (token Bearer), repo terpisah: `klinik-amanah` |
 
 ## Struktur Project
 
@@ -102,7 +102,7 @@ Setiap layanan di `core/services` membungkus satu kelompok endpoint:
 
 ## Menjalankan Project
 
-**Prasyarat:** Node.js 20+ dan npm, serta API Laravel `klinik-amanah` yang sedang berjalan.
+**Prasyarat:** Node.js 20+ dan npm, serta API Spring Boot `klinik-amanah` yang sedang berjalan.
 
 1. Install dependency:
 
@@ -118,7 +118,7 @@ Setiap layanan di `core/services` membungkus satu kelompok endpoint:
    };
    ```
 
-   Saat dijalankan di HP, gunakan IP komputer di jaringan yang sama (bukan `localhost`), lalu jalankan Laravel dengan `php artisan serve --host=0.0.0.0`.
+   Saat dijalankan di HP, gunakan IP komputer di jaringan yang sama (bukan `localhost`), pastikan server Spring Boot menerima koneksi dari jaringan (`server.address=0.0.0.0`), dan sesuaikan port pada `apiUrl` dengan `server.port` (default Spring Boot `8080`).
 
 3. Jalankan di browser:
 
@@ -142,7 +142,7 @@ npx cap open android       # buka di Android Studio, lalu Run / build APK
 
 - **Autentikasi:** token dari `POST /login` disimpan di `localStorage` dan dikirim sebagai `Authorization: Bearer <token>` oleh [auth.interceptor.ts](src/app/core/interceptors/auth.interceptor.ts). Respons `401` menghapus sesi dan mengarahkan ke halaman login.
 - **Hak akses:** izin user (`permissions`, `roles`) dari `/me` dipakai untuk menampilkan atau menyembunyikan tombol. Aksi pada tagihan dan sesi kasir mengikuti `abilities` / `can_*` / `billing_action` yang dikirim server.
-- **Error:** pesan `422` dari Laravel ditampilkan di field terkait; `403`, `404`, timeout, dan gangguan jaringan diubah menjadi pesan yang mudah dipahami ([http-error.ts](src/app/core/utils/http-error.ts)).
+- **Error:** pesan validasi `422` dari API ditampilkan di field terkait; `403`, `404`, timeout, dan gangguan jaringan diubah menjadi pesan yang mudah dipahami ([http-error.ts](src/app/core/utils/http-error.ts)).
 - **Nominal uang** dikirim server sebagai angka (mis. `90000`) dan ditampilkan dalam format Rupiah.
 
 ## Screenshot
